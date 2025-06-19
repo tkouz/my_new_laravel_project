@@ -24,11 +24,18 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'username' => fake()->unique()->userName(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // あなたのマイグレーションファイルで追加した他のカラムも必要に応じてここに定義
+            // 例えば:
+            // 'profile_image' => null, // または fake()->imageUrl() など
+            // 'self_introduction' => fake()->paragraph(),
+            // 'last_login_at' => now(),
+            // 'role' => 'general', // または fake()->randomElement(['general', 'admin']),
+            // 'is_active' => true,
         ];
     }
 
