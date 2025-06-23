@@ -14,8 +14,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            // テーブル定義書に合わせて name -> username に変更し、コメント追加
-            $table->string('username', 255)->comment('ユーザー名'); 
+            $table->string('name', 255)->comment('ユーザー名');
             $table->string('email')->unique()->comment('メールアドレス');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->comment('パスワードハッシュ'); // Laravelの認証機能に合わせてカラム名はpasswordのまま

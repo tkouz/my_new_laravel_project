@@ -25,6 +25,9 @@ return new class extends Migration
             // 外部キー user_id (usersテーブルを参照)
             $table->foreignId('user_id')->constrained()->comment('ユーザーID'); // 必須
 
+            // ★ここに追加：ベストアンサーフラグ
+            $table->boolean('is_best_answer')->default(false)->comment('ベストアンサーフラグ'); 
+
             $table->boolean('is_visible')->default(true)->comment('表示フラグ'); // デフォルト TRUE
 
             // created_at (投稿日時として利用) と updated_at (更新日時) を生成

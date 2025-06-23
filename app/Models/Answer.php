@@ -9,16 +9,11 @@ class Answer extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
+        'user_id',
         'question_id',
         'content',
-        'image_path',
-        'user_id',
+        'is_best_answer',
         'is_visible',
     ];
 
@@ -28,11 +23,12 @@ class Answer extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'is_best_answer' => 'boolean', // この行は追加されていなかったので追加します
         'is_visible' => 'boolean',
     ];
 
     /**
-     * Get the question that owns the answer.
+     * この回答が属する質問を取得する
      */
     public function question()
     {
@@ -40,7 +36,7 @@ class Answer extends Model
     }
 
     /**
-     * Get the user that owns the answer.
+     * この回答を投稿したユーザーを取得する
      */
     public function user()
     {
@@ -48,7 +44,7 @@ class Answer extends Model
     }
 
     /**
-     * Get the comments for the answer.
+     * この回答に対するコメントを取得する
      */
     public function comments()
     {

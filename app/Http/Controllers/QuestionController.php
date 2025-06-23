@@ -3,26 +3,53 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Question; // ★ Questionモデルをuseする
+use Illuminate\View\View;
+use App\Models\Question;
+use App\Models\Answer; // Answerモデルもuseする (必要であれば、もし使わなければ削除可)
 
 class QuestionController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 質問一覧を表示する
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        // とりあえずダミーデータ。後でDBから取得するように変更
-        // $questions = [
-        //     ['id' => 1, 'title' => 'Laravelのインストール方法', 'content' => 'Docker Composeを使っています。', 'user_name' => 'ユーザーA'],
-        //     ['id' => 2, 'title' => 'マイグレーションの実行エラー', 'content' => 'SQLSTATE[42S22]が発生しました。', 'user_name' => 'ユーザーB'],
-        // ];
+        // 検索キーワードを取得
+        $keyword = $request->input('keyword');
 
-        // ★ DBから質問を全て取得する
-        $questions = Question::all();
+        // クエリビルダの開始
+        $query = Question::query();
+
+        // キーワードが入力されている場合、絞り込み条件を追加
+        if ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'LIKE', "%{$keyword}%")
+                  ->orWhere('content', 'LIKE', "%{$keyword}%");
+            });
+        }
+
+        // ★この行を修正します: with('user') を追加してユーザー情報をEager Loading
+        $questions = $query->with('user')->get();
 
         return view('questions.index', compact('questions'));
     }
 
-    // 他のメソッド（create, store, show, edit, update, destroy）は後で追加
+    /**
+     * 特定の質問の詳細を表示する
+     *
+     * @param  \App\Models\Question  $question
+     * @return \Illuminate\View\View
+     */
+    public function show(Question $question)
+    {
+        // 質問とそれに関連する回答を一緒にロードする（Eager Loading）
+        $question->load('answers.user');
+
+        return view('questions.show', compact('question'));
+    }
+
+    // 他のメソッド（create, store, edit, update, destroy）は後で追加
 }

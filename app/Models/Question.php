@@ -9,16 +9,11 @@ class Question extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
+        'user_id',
         'title',
         'content',
         'image_path',
-        'user_id',
         'is_visible',
     ];
 
@@ -29,12 +24,10 @@ class Question extends Model
      */
     protected $casts = [
         'is_visible' => 'boolean',
-        // 'created_at' => 'datetime', // timestamps() で自動的に datetime になるので不要な場合が多い
-        // 'updated_at' => 'datetime', // timestamps() で自動的に datetime になるので不要な場合が多い
     ];
 
     /**
-     * Get the user that owns the question.
+     * この質問を投稿したユーザーを取得する
      */
     public function user()
     {
@@ -42,7 +35,7 @@ class Question extends Model
     }
 
     /**
-     * Get the answers for the question.
+     * この質問に属する回答を取得する
      */
     public function answers()
     {
@@ -50,7 +43,7 @@ class Question extends Model
     }
 
     /**
-     * Get the bookmarks for the question.
+     * この質問に対するブックマークを取得する
      */
     public function bookmarks()
     {
