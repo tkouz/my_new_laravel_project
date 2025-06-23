@@ -1,56 +1,105 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $question->title }} - 質問詳細</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-        h2 { color: #555; }
-        p { color: #666; }
-        .meta-info { font-size: 0.9em; color: #888; margin-top: 10px; }
-        .back-link { display: inline-block; margin-top: 20px; padding: 8px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-        .back-link:hover { background-color: #0056b3; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <p><a href="{{ route('questions.index') }}" class="back-link">← 質問一覧に戻る</a></p>
+{{-- resources/views/questions/show.blade.php --}}
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('質問詳細') }}
+        </h2>
+    </x-slot>
 
-        <h1>{{ $question->title }}</h1>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    {{-- 質問本体の表示 --}}
+                    <h3 class="text-2xl font-bold mb-4">{{ $question->title }}</h3>
+                    <p class="text-lg text-gray-700 mb-6">{{ $question->content }}</p>
+                    <p class="text-sm text-gray-500 mb-8">投稿者: {{ $question->user->name ?? '不明' }}</p>
 
-        <h2>質問内容:</h2>
-        <p>{{ $question->content }}</p>
+                    {{-- ★★★ここに追加する★★★ --}}
+                    @auth
+                        @if (Auth::id() === $question->user_id)
+                            <div class="flex space-x-4 mb-8">
+                                <a href="{{ route('questions.edit', $question) }}" class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 focus:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    {{ __('編集') }}
+                                </a>
 
-        <div class="meta-info">
-            <p>投稿者: {{ $question->user->username ?? '不明' }}</p>
-            <p>投稿日時: {{ $question->created_at->format('Y年m月d日 H:i') }}</p>
-        </div>
-
-        {{-- ここに回答やコメントの表示・投稿フォームなどを追加していく --}}
-        <hr style="margin-top: 30px; margin-bottom: 30px;">
-        <h3>回答</h3>
-        @if ($question->answers->isEmpty())
-        <p>まだ回答はありません。</p>
-        @else
-        <div class="answers-list">
-            @foreach ($question->answers as $answer)
-                <div class="answer" style="border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 5px; background: #f9f9f9;">
-                    <p style="margin-bottom: 5px;">{{ $answer->content }}</p>
-                    <div style="font-size: 0.85em; color: #777; text-align: right;">
-                        投稿者: {{ $answer->user->username ?? '不明' }}
-                        - {{ $answer->created_at->format('Y年m月d日 H:i') }}
-                        @if ($answer->is_best_answer)
-                            <span style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 3px; margin-left: 10px;">ベストアンサー</span>
+                                <form action="{{ route('questions.destroy', $question) }}" method="POST" onsubmit="return confirm('本当にこの質問を削除しますか？');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                        {{ __('削除') }}
+                                    </button>
+                                </form>
+                            </div>
                         @endif
+                    @endauth
+                    {{-- ★★★追加ここまで★★★ --}}
+
+                    <hr class="my-6 border-gray-200">
+
+                    {{-- 成功メッセージの表示 --}}
+                    @if (session('status'))
+                        <div class="mb-4 font-medium text-sm text-green-600">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+
+                    {{-- 回答投稿フォーム --}}
+                    @auth
+                        <h4 class="text-xl font-semibold mt-8 mb-4">{{ __('回答を投稿する') }}</h4>
+
+                        <x-validation-errors class="mb-4" />
+
+                        <form method="POST" action="{{ route('answers.store', $question) }}">
+                            @csrf
+
+                            <!-- Answer Content -->
+                            <div>
+                                <x-input-label for="content" :value="__('あなたの回答')" />
+                                <x-textarea-input id="content" class="block mt-1 w-full" name="content" rows="5" required>{{ old('content') }}</x-textarea-input>
+                                <x-input-error :messages="$errors->get('content')" class="mt-2" />
+                            </div>
+
+                            <div class="flex items-center justify-end mt-4">
+                                <x-primary-button class="ms-4">
+                                    {{ __('回答を送信') }}
+                                </x-primary-button>
+                            </div>
+                        </form>
+                        <hr class="my-6 border-gray-200">
+                    @else
+                        <p class="mb-4 text-gray-600">{{ __('回答を投稿するには') }} <a href="{{ route('login') }}" class="underline text-blue-500 hover:text-blue-700">ログイン</a> {{ __('してください。') }}</p>
+                        <hr class="my-6 border-gray-200">
+                    @endauth
+
+                    {{-- 回答一覧の表示 --}}
+                    <h4 class="text-xl font-semibold mt-8 mb-4">{{ __('回答一覧') }} ({{ $question->answers->count() }})</h4>
+                    @if ($question->answers->isEmpty())
+                        <p class="text-gray-600">{{ __('まだ回答がありません。最初の回答を投稿しましょう！') }}</p>
+                    @else
+                        @foreach ($question->answers as $answer)
+                            <div class="bg-gray-50 p-4 mb-4 rounded-lg shadow-sm">
+                                <p class="text-gray-800 mb-2">{{ $answer->content }}</p>
+                                <p class="text-sm text-gray-500">回答者: {{ $answer->user->name ?? '不明' }} - {{ $answer->created_at->diffForHumans() }}</p>
+                                @if (isset($answer->is_best_answer) && $answer->is_best_answer)
+                                    <span class="inline-flex items-center mt-2 px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        <svg class="-ms-1 me-1.5 h-3 w-3 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+                                            <circle cx="4" cy="4" r="3" />
+                                        </svg>
+                                        ベストアンサー
+                                    </span>
+                                @endif
+                            </div>
+                        @endforeach
+                    @endif
+
+                    <div class="mt-8">
+                        <a href="{{ route('questions.index') }}" class="text-blue-500 hover:underline">
+                            {{ __('質問一覧に戻る') }}
+                        </a>
                     </div>
                 </div>
-            @endforeach
+            </div>
         </div>
-    @endif
-    {{-- ★ここまで回答の表示部分 --}}
     </div>
-</body>
-</html>
+</x-app-layout>
