@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\AnswerController;
+use App\Http\Controllers\BookmarkController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +40,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
     // 質問の削除
     Route::delete('/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
+    // ★ここまで追加
+
+    // ★ここから追加: ブックマークに関するルート
+    // 質問をブックマークする
+    Route::post('/questions/{question}/bookmark', [BookmarkController::class, 'store'])->name('bookmark.store');
+    // 質問のブックマークを解除する
+    Route::delete('/questions/{question}/bookmark', [BookmarkController::class, 'destroy'])->name('bookmark.destroy');
     // ★ここまで追加
     // プロフィール関連はそのまま
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

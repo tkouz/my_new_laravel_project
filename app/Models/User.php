@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Question;
 use App\Models\Answer;
 use App\Models\Bookmark; // Bookmarkモデルを使っているならこの行も追加
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 
 class User extends Authenticatable
@@ -81,9 +82,9 @@ class User extends Authenticatable
     /**
      * このユーザーがブックマークした質問を取得する
      */
-    public function bookmarks()
+    public function bookmarks(): BelongsToMany
     {
-        return $this->hasMany(Bookmark::class);
+        return $this->belongsToMany(Question::class, 'bookmarks', 'user_id', 'question_id')->withTimestamps();
     }
     // ここまでリレーションメソッドの追加
 }

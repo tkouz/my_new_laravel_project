@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use App\Models\Question; // ★追加
+use App\Models\Answer;   // ★追加
 
 class ProfileController extends Controller
 {
@@ -16,8 +18,18 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        // ログインユーザーの質問を取得
+        // with('user') は既にログインユーザーであるため不要ですが、将来的な拡張性を考えて残す
+        $myQuestions = Question::where('user_id', Auth::id())->with('user')->orderByDesc('created_at')->get();
+
+        // ログインユーザーの回答を取得
+        $myAnswers = Answer::where('user_id', Auth::id())->with('question')->orderByDesc('created_at')->get();
+
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'myQuestions' => $myQuestions, // ★追加
+            'myAnswers' => $myAnswers,     // ★追加
         ]);
     }
 
@@ -42,7 +54,7 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
+        $request->validate([
             'password' => ['required', 'current_password'],
         ]);
 

@@ -1,4 +1,3 @@
-{{-- resources/views/questions/show.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -15,7 +14,7 @@
                     <p class="text-lg text-gray-700 mb-6">{{ $question->content }}</p>
                     <p class="text-sm text-gray-500 mb-8">投稿者: {{ $question->user->name ?? '不明' }}</p>
 
-                    {{-- ★★★ここに追加する★★★ --}}
+                    {{-- 編集・削除ボタン (既存) --}}
                     @auth
                         @if (Auth::id() === $question->user_id)
                             <div class="flex space-x-4 mb-8">
@@ -33,18 +32,50 @@
                             </div>
                         @endif
                     @endauth
-                    {{-- ★★★追加ここまで★★★ --}}
+
+                    {{-- ★ここから追加: ブックマークボタン --}}
+                    @auth
+                        {{-- 自分が投稿した質問でなければブックマークボタンを表示 --}}
+                        @if (Auth::id() !== $question->user_id)
+                            <div class="mb-8">
+                                @if (Auth::user()->bookmarks->contains($question->id))
+                                    {{-- ブックマーク済みの場合は解除ボタンを表示 --}}
+                                    <form action="{{ route('bookmark.destroy', $question) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-600 focus:bg-yellow-600 active:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                            {{ __('ブックマーク解除') }}
+                                        </button>
+                                    </form>
+                                @else
+                                    {{-- ブックマークしていない場合は追加ボタンを表示 --}}
+                                    <form action="{{ route('bookmark.store', $question) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-600 focus:bg-green-600 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                            {{ __('ブックマーク') }}
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endif
+                    @endauth
+                    {{-- ★ここまで追加 --}}
 
                     <hr class="my-6 border-gray-200">
 
-                    {{-- 成功メッセージの表示 --}}
+                    {{-- 成功メッセージとエラーメッセージの表示 --}}
                     @if (session('status'))
                         <div class="mb-4 font-medium text-sm text-green-600">
                             {{ session('status') }}
                         </div>
                     @endif
+                    @if (session('error')) {{-- エラーメッセージも表示 --}}
+                        <div class="mb-4 font-medium text-sm text-red-600">
+                            {{ session('error') }}
+                        </div>
+                    @endif
 
-                    {{-- 回答投稿フォーム --}}
+                    {{-- 回答投稿フォーム (既存) --}}
                     @auth
                         <h4 class="text-xl font-semibold mt-8 mb-4">{{ __('回答を投稿する') }}</h4>
 
@@ -72,7 +103,7 @@
                         <hr class="my-6 border-gray-200">
                     @endauth
 
-                    {{-- 回答一覧の表示 --}}
+                    {{-- 回答一覧の表示 (既存) --}}
                     <h4 class="text-xl font-semibold mt-8 mb-4">{{ __('回答一覧') }} ({{ $question->answers->count() }})</h4>
                     @if ($question->answers->isEmpty())
                         <p class="text-gray-600">{{ __('まだ回答がありません。最初の回答を投稿しましょう！') }}</p>
