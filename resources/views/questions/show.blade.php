@@ -72,17 +72,6 @@
 
                     <hr class="my-6 border-gray-200">
 
-                    {{-- 成功メッセージとエラーメッセージの表示 --}}
-                    @if (session('status'))
-                        <div class="mb-4 font-medium text-sm text-green-600">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-                    @if (session('error'))
-                        <div class="mb-4 font-medium text-sm text-red-600">
-                            {{ session('error') }}
-                        </div>
-                    @endif
 
                     {{-- 回答投稿フォーム --}}
                     @auth

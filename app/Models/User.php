@@ -2,41 +2,34 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail; // 必要なければコメントアウトのままでOK
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-// App\Models\Question は不要 (直接Questionモデルを使わずリレーションで取得するため)
-// App\Models\Answer は不要 (直接Answerモデルを使わずリレーションで取得するため)
-// App\Models\Bookmark は不要 (直接Bookmarkモデルを使わずリレーションで取得するため)
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * モデルの「一括割り当て可能」な属性。
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'profile_image_path',
-        'bio',
-        'is_active',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * 配列にシリアル化されるべき属性。
+     * （例: JSON応答から隠すパスワードなど）
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -44,50 +37,55 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * 属性の型キャスト。
+     * （例: データベースから取得したデータを特定の型に変換）
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_active' => 'boolean', // is_active もbooleanにキャストする
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed', // パスワードをハッシュ化して保存することを示す
+    ];
 
-    // ★ここからリレーションメソッド
     /**
-     * このユーザーが投稿した質問を取得する
+     * このユーザーが投稿した質問を取得します。
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function questions(): HasMany // 型ヒントを追加
+    public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
     }
 
     /**
-     * このユーザーが投稿した回答を取得する
+     * このユーザーが投稿した回答を取得します。
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function answers(): HasMany // 型ヒントを追加
+    public function answers(): HasMany
     {
         return $this->hasMany(Answer::class);
     }
 
     /**
-     * このユーザーがブックマークした質問を取得する
-     */
-    public function bookmarks(): BelongsToMany
-    {
-        return $this->belongsToMany(Question::class, 'bookmarks', 'user_id', 'question_id')->withTimestamps();
-    }
-
-    /**
-     * このユーザーが投稿したコメントを取得する
+     * このユーザーが投稿したコメントを取得します。
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
-    // ★ここまでリレーションメソッド
+
+    /**
+     * このユーザーがブックマークした質問を取得します。
+     * 'bookmarks'は中間テーブル名、'user_id'はこのモデルの外部キー、'question_id'は関連モデルの外部キー。
+     * withTimestamps()は中間テーブルのcreated_atとupdated_atを自動で更新します。
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function bookmarks(): BelongsToMany
+    {
+        return $this->belongsToMany(Question::class, 'bookmarks', 'user_id', 'question_id')->withTimestamps();
+    }
 }

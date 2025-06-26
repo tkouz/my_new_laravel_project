@@ -48,12 +48,7 @@
                             </a>
                         @endif
                     </div>
-                    {{-- 質問投稿後の成功メッセージ (既存) --}}
-                    @if (session('status'))
-                        <div class="mb-4 font-medium text-sm text-green-600">
-                            {{ session('status') }}
-                        </div>
-                    @endif
+                   
 
                     {{-- 質問リストの表示 --}}
                     <h3 class="text-xl font-semibold mb-4">{{ __('すべての質問') }}</h3>

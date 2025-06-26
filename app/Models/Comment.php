@@ -4,34 +4,40 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // BelongsToをインポート
 
 class Comment extends Model
 {
     use HasFactory;
 
     /**
-     * The attributes that are mass assignable.
+     * モデルの「一括割り当て可能」な属性。
+     * （create() や update() メソッドで一度に設定できるカラム）
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_id',
-        'answer_id',
-        'content',
+        'user_id',   // コメント投稿者のID
+        'answer_id', // コメントが紐付く回答のID
+        'content',   // コメントの内容
     ];
 
     /**
-     * このコメントを所有するユーザーを取得する
+     * このコメントを投稿したユーザーを取得します。
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /**
-     * このコメントが関連する回答を取得する
+     * このコメントが属する回答を取得します。
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function answer()
+    public function answer(): BelongsTo
     {
         return $this->belongsTo(Answer::class);
     }

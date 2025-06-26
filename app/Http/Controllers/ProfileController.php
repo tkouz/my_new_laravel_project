@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
-// Question, Answer, Comment モデルをインポート
+// 各モデルをインポート
 use App\Models\Question;
 use App\Models\Answer;
 use App\Models\Comment;
@@ -17,73 +17,91 @@ use App\Models\Comment;
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * ユーザーのプロフィール表示フォームと関連するデータ（質問、回答、コメント）を表示します。
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
      */
     public function edit(Request $request): View
     {
         $user = $request->user();
 
-        // 自分の質問のデータを取得
+        // 認証済みユーザーが投稿した質問を最新順で取得
         $myQuestions = Question::where('user_id', $user->id)
                                ->orderByDesc('created_at')
                                ->get();
 
-        // 自分の回答のデータを取得
+        // 認証済みユーザーが投稿した回答を最新順で取得し、関連する質問もロード
         $myAnswers = Answer::where('user_id', $user->id)
-                           ->with('question') // 回答がどの質問に対するものか表示するためにリレーションをロード
+                           ->with('question')
                            ->orderByDesc('created_at')
                            ->get();
 
-        // 自分のコメントのデータを取得
+        // 認証済みユーザーが投稿したコメントを最新順で取得し、関連する回答と質問もロード
         $myComments = Comment::where('user_id', $user->id)
-                             ->with('answer.question') // コメントがどの回答のどの質問に対するものか表示するためにリレーションをロード
+                             ->with('answer.question')
                              ->orderByDesc('created_at')
                              ->get();
         
-        // ブックマークはUserモデルのリレーションから直接取得できる
-
+        // プロフィール編集ビューにユーザーデータと取得した各種リストを渡す
         return view('profile.edit', [
             'user' => $user,
-            'myQuestions' => $myQuestions, // ビューに渡す
-            'myAnswers' => $myAnswers,     // ビューに渡す
-            'myComments' => $myComments,   // ビューに渡す
+            'myQuestions' => $myQuestions,
+            'myAnswers' => $myAnswers,
+            'myComments' => $myComments,
         ]);
     }
 
     /**
-     * Update the user's profile information.
+     * ユーザーのプロフィール情報を更新します。
+     * メールアドレスが変更された場合、未認証状態に戻します。
+     *
+     * @param  \App\Http\Requests\ProfileUpdateRequest  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        // バリデーション済みのリクエストデータでユーザーモデルを更新
         $request->user()->fill($request->validated());
 
+        // メールアドレスが変更された場合、メール認証日時をnullにする
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
         }
 
+        // ユーザー情報をデータベースに保存
         $request->user()->save();
 
+        // プロフィール編集ページへリダイレクトし、成功メッセージをセッションにフラッシュ
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
-     * Delete the user's account.
+     * ユーザーアカウントを削除します。
+     * 削除前にパスワード認証を要求します。
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // ユーザー削除に関するバリデーション（パスワードの確認）
         $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+            'password' => ['required', 'current_password'], // パスワードは必須で、現在のパスワードと一致すること
         ]);
 
-        $user = $request->user();
+        $user = $request->user(); // 認証済みユーザーを取得
 
-        Auth::logout();
+        Auth::logout(); // ユーザーをログアウトさせる
 
-        $user->delete();
+        $user->delete(); // ユーザーアカウントをデータベースから削除
 
+        // セッションを無効にし、新しいトークンを再生成
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        // トップページにリダイレクト
         return Redirect::to('/');
     }
 }
+
