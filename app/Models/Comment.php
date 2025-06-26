@@ -15,24 +15,24 @@ class Comment extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'answer_id',
         'content',
-        'user_id',
     ];
 
     /**
-     * Get the answer that owns the comment.
-     */
-    public function answer()
-    {
-        return $this->belongsTo(Answer::class);
-    }
-
-    /**
-     * Get the user that owns the comment.
+     * このコメントを所有するユーザーを取得する
      */
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * このコメントが関連する回答を取得する
+     */
+    public function answer()
+    {
+        return $this->belongsTo(Answer::class);
     }
 }

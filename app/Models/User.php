@@ -7,22 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Question;
-use App\Models\Answer;
-use App\Models\Bookmark; // Bookmarkモデルを使っているならこの行も追加
+// App\Models\Question は不要 (直接Questionモデルを使わずリレーションで取得するため)
+// App\Models\Answer は不要 (直接Answerモデルを使わずリレーションで取得するため)
+// App\Models\Bookmark は不要 (直接Bookmarkモデルを使わずリレーションで取得するため)
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
-
-    /**
-     *
-     * @var string
-     */
-
 
     /**
      * The attributes that are mass assignable.
@@ -62,11 +57,11 @@ class User extends Authenticatable
         ];
     }
 
-    // ここからリレーションメソッドの追加（以前のコードから持ってくる）
+    // ★ここからリレーションメソッド
     /**
      * このユーザーが投稿した質問を取得する
      */
-    public function questions()
+    public function questions(): HasMany // 型ヒントを追加
     {
         return $this->hasMany(Question::class);
     }
@@ -74,7 +69,7 @@ class User extends Authenticatable
     /**
      * このユーザーが投稿した回答を取得する
      */
-    public function answers()
+    public function answers(): HasMany // 型ヒントを追加
     {
         return $this->hasMany(Answer::class);
     }
@@ -86,5 +81,13 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Question::class, 'bookmarks', 'user_id', 'question_id')->withTimestamps();
     }
-    // ここまでリレーションメソッドの追加
+
+    /**
+     * このユーザーが投稿したコメントを取得する
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+    // ★ここまでリレーションメソッド
 }

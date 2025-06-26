@@ -4,18 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Question extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'title',
         'content',
         'image_path',
         'is_visible',
+        'status', // statusカラムを追加
+    ];
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'status' => 'open', // statusのデフォルト値を'open'に設定
     ];
 
     /**
@@ -24,29 +40,29 @@ class Question extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'is_visible' => 'boolean',
+        'is_visible' => 'boolean', // is_visibleカラムをboolean型にキャスト
     ];
 
     /**
-     * この質問を投稿したユーザーを取得する
+     * Get the answers for the question.
      */
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * この質問に属する回答を取得する
-     */
-    public function answers()
+    public function answers(): HasMany
     {
         return $this->hasMany(Answer::class);
     }
 
     /**
-     * この質問に対するブックマークを取得する
+     * Get the user that owns the question.
      */
-    public function bookmarkedUsers(): BelongsToMany
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The questions that belong to the user.
+     */
+    public function bookmarks()
     {
         return $this->belongsToMany(User::class, 'bookmarks', 'question_id', 'user_id')->withTimestamps();
     }

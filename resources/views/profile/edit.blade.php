@@ -8,25 +8,28 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            {{-- プロフィール情報更新フォーム --}}
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     @include('profile.partials.update-profile-information-form')
                 </div>
             </div>
 
+            {{-- パスワード更新フォーム--}}
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     @include('profile.partials.update-password-form')
                 </div>
             </div>
 
+            {{-- ユーザー削除フォーム --}}
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     @include('profile.partials.delete-user-form')
                 </div>
             </div>
 
-            {{-- 自分の質問一覧 (既存) --}}
+            {{-- 自分の質問一覧 --}}
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     <h2 class="text-lg font-medium text-gray-900">
@@ -67,7 +70,7 @@
                 </div>
             </div>
 
-            {{-- 自分の回答一覧 (既存) --}}
+            {{-- 自分の回答一覧 --}}
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     <h2 class="text-lg font-medium text-gray-900">
@@ -97,7 +100,7 @@
                 </div>
             </div>
 
-            {{-- ★ここから追加: 自分のブックマーク一覧 --}}
+            {{-- 自分のブックマーク一覧 --}}
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     <h2 class="text-lg font-medium text-gray-900">
@@ -108,8 +111,6 @@
                     </p>
 
                     <div class="mt-6 space-y-4">
-                        {{-- Auth::user() は現在ログインしているユーザーインスタンス。
-                             ->bookmarks は User モデルで定義した多対多リレーション。 --}}
                         @if (Auth::user()->bookmarks->isEmpty())
                             <p class="text-gray-600">{{ __('まだブックマークした質問がありません。') }} <a href="{{ route('questions.index') }}" class="underline text-blue-500 hover:text-blue-700">{{ __('質問を探す') }}</a></p>
                         @else
@@ -125,7 +126,6 @@
                                             ブックマーク日時: {{ $bookmarkedQuestion->pivot->created_at->format('Y/m/d H:i') }}
                                         </p>
                                     </div>
-                                    {{-- ブックマーク解除ボタン --}}
                                     <form action="{{ route('bookmark.destroy', $bookmarkedQuestion) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
@@ -139,7 +139,37 @@
                     </div>
                 </div>
             </div>
-            {{-- ★ここまで追加 --}}
+
+            {{-- 自分のコメント一覧 --}}
+            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+                <div class="max-w-xl">
+                    <h2 class="text-lg font-medium text-gray-900">
+                        {{ __('あなたのコメント') }}
+                    </h2>
+                    <p class="mt-1 text-sm text-gray-600">
+                        {{ __('あなたが投稿したコメントの一覧です。') }}
+                    </p>
+
+                    <div class="mt-6 space-y-4">
+                        @if ($myComments->isEmpty())
+                            <p class="text-gray-600">{{ __('まだコメントを投稿していません。') }}</p>
+                        @else
+                            @foreach ($myComments as $comment)
+                                <div class="border-b border-gray-100 pb-4">
+                                    <p class="text-base text-gray-800">{{ $comment->content }}</p>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        回答: <a href="{{ route('questions.show', $comment->answer->question) }}" class="text-blue-600 hover:underline">
+                                            {{ $comment->answer->content }}
+                                        </a>
+                                        に投稿
+                                    </p>
+                                    <p class="text-xs text-gray-500">コメント日時: {{ $comment->created_at->format('Y/m/d H:i') }}</p>
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>

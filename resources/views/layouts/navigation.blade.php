@@ -1,27 +1,39 @@
+{{-- resources/views/layouts/navigation.blade.php --}}
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+    <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
+                <!-- Logo -->
                 <div class="shrink-0 flex items-center">
+                    {{-- ロゴのリンク先を質問一覧に設定 --}}
                     <a href="{{ route('questions.index') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
                 </div>
 
+                <!-- Navigation Links (デスクトップ版) -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('questions.index')" :active="request()->routeIs('questions.index')">
                         {{ __('質問一覧') }}
                     </x-nav-link>
+                    {{-- ログインしているユーザーにのみ質問投稿リンクを表示 --}}
+                    @auth
+                        <x-nav-link :href="route('questions.create')" :active="request()->routeIs('questions.create')">
+                            {{ __('質問を投稿') }}
+                        </x-nav-link>
+                    @endauth
                 </div>
             </div>
 
+            <!-- Settings Dropdown (ログイン済みユーザー向け) / Login/Register Links (未ログインユーザー向け) -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
-                {{-- ★★★ここから追加★★★ --}}
-                @auth {{-- ログインしている場合のみ表示 --}}
+                @auth
+                    {{-- ログイン済みの場合のドロップダウンメニュー --}}
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                                <div>{{ Auth::user()->name }}</div> {{-- この行がエラーの原因だった --}}
+                                <div>{{ Auth::user()->name }}</div> {{-- ユーザー名を表示 --}}
 
                                 <div class="ms-1">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -33,29 +45,30 @@
 
                         <x-slot name="content">
                             <x-dropdown-link :href="route('profile.edit')">
-                                {{ __('Profile') }}
+                                {{ __('マイページ') }}
                             </x-dropdown-link>
 
+                            <!-- ログアウト -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-
                                 <x-dropdown-link :href="route('logout')"
                                         onclick="event.preventDefault();
                                                     this.closest('form').submit();">
-                                    {{ __('Log Out') }}
+                                    {{ __('ログアウト') }}
                                 </x-dropdown-link>
                             </form>
                         </x-slot>
                     </x-dropdown>
-                @else {{-- ログインしていない場合のみ表示 --}}
-                    <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Log in</a>
+                @else
+                    {{-- 未ログイン時のログイン/登録リンク --}}
+                    <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">{{ __('Log in') }}</a>
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="ms-4 font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Register</a>
+                        <a href="{{ route('register') }}" class="ms-4 font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">{{ __('Register') }}</a>
                     @endif
                 @endauth
-                {{-- ★★★ここまで追加★★★ --}}
             </div>
 
+            <!-- Hamburger (モバイル向け) -->
             <div class="-me-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -67,51 +80,52 @@
         </div>
     </div>
 
+    <!-- Responsive Navigation Menu (モバイル向け) -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('questions.index')" :active="request()->routeIs('questions.index')">
                 {{ __('質問一覧') }}
             </x-responsive-nav-link>
+            @auth
+                <x-responsive-nav-link :href="route('questions.create')" :active="request()->routeIs('questions.create')">
+                    {{ __('質問を投稿') }}
+                </x-responsive-nav-link>
+            @endauth
         </div>
 
-        {{-- ★★★ここから追加 (レスポンシブメニュー内の認証部分)★★★ --}}
-        @auth
-            <div class="pt-4 pb-1 border-t border-gray-200">
+        <!-- Responsive Settings Options (モバイル向け) -->
+        <div class="pt-4 pb-1 border-t border-gray-200">
+            @auth
                 <div class="px-4">
-                    <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                    <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                    <div class="font-bold text-lg text-gray-800">{{ Auth::user()->name }}</div> 
+                    <div class="font-medium text-sm text-gray-600">{{ Auth::user()->email }}</div> 
                 </div>
 
                 <div class="mt-3 space-y-1">
-                    <x-responsive-nav-link :href="route('profile.edit')">
-                        {{ __('Profile') }}
+                    <x-responsive-nav-link :href="route('profile.edit')" class="bg-blue-100 hover:bg-blue-200 text-blue-700">
+                        {{ __('マイページ') }}
                     </x-responsive-nav-link>
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-
                         <x-responsive-nav-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                            {{ __('Log Out') }}
+                                onclick="event.preventDefault();
+                                            this.closest('form').submit();"
+                                class="text-gray-700 hover:bg-gray-100"> 
+                            {{ __('ログアウト') }}
                         </x-responsive-nav-link>
                     </form>
                 </div>
-            </div>
-        @else
-            <div class="pt-4 pb-1 border-t border-gray-200">
-                <div class="mt-3 space-y-1">
-                    <x-responsive-nav-link :href="route('login')">
-                        {{ __('Log in') }}
+            @else
+                <x-responsive-nav-link :href="route('login')">
+                    {{ __('Log in') }}
+                </x-responsive-nav-link>
+                @if (Route::has('register'))
+                    <x-responsive-nav-link :href="route('register')">
+                        {{ __('Register') }}
                     </x-responsive-nav-link>
-                    @if (Route::has('register'))
-                        <x-responsive-nav-link :href="route('register')">
-                            {{ __('Register') }}
-                        </x-responsive-nav-link>
-                    @endif
-                </div>
-            </div>
-        @endauth
-        {{-- ★★★ここまで追加★★★ --}}
+                @endif
+            @endauth
+        </div>
     </div>
 </nav>
