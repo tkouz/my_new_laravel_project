@@ -14,7 +14,7 @@
             Schema::table('questions', function (Blueprint $table) {
                 // statusカラムを追加。デフォルトは'open'で、NULLを許容しない
                 // default('open') を追加することで、既存の行にも'open'が設定される
-                $table->string('status')->default('open')->after('is_visible'); // is_visibleカラムの後に配置
+                $table->string('status')->default('open');
             });
         }
 

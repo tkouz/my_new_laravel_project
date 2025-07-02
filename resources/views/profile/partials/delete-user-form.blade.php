@@ -1,18 +1,18 @@
 <section class="space-y-6">
     <header>
         <h2 class="text-lg font-medium text-gray-900">
-            {{ __('アカウントの削除') }}
+            {{ __('アカウントを削除') }} {{-- ★ここを日本語に修正 --}}
         </h2>
 
         <p class="mt-1 text-sm text-gray-600">
-            {{ __('アカウントが削除されると、そのリソースとデータはすべて完全に削除されます。アカウントを削除する前に、保持したいデータや情報をダウンロードしてください。') }}
+            {{ __('アカウントが削除されると、そのすべてのリソースとデータは完全に削除されます。アカウントを削除する前に、保持したいデータや情報をダウンロードしてください。') }} {{-- ★ここを日本語に修正 --}}
         </p>
     </header>
 
     <x-danger-button
         x-data=""
         x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
-    >{{ __('アカウントを削除') }}</x-danger-button>
+    >{{ __('アカウントを削除') }}</x-danger-button> {{-- ★ここを日本語に修正 --}}
 
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
         <form method="post" action="{{ route('profile.destroy') }}" class="p-6">
@@ -20,22 +20,22 @@
             @method('delete')
 
             <h2 class="text-lg font-medium text-gray-900">
-                {{ __('本当にアカウントを削除してもよろしいですか？') }}
+                {{ __('本当にアカウントを削除しますか？') }} {{-- ★ここを日本語に修正 --}}
             </h2>
 
             <p class="mt-1 text-sm text-gray-600">
-                {{ __('アカウントが削除されると、そのリソースとデータはすべて完全に削除されます。アカウントを完全に削除するには、現在のパスワードを入力して削除を確定してください。') }}
+                {{ __('アカウントが削除されると、そのすべてのリソースとデータは完全に削除されます。アカウントを完全に削除するには、パスワードを入力して確認してください。') }} {{-- ★ここを日本語に修正 --}}
             </p>
 
             <div class="mt-6">
-                <x-input-label for="password" value="{{ __('パスワード') }}" class="sr-only" />
+                <x-input-label for="password" value="{{ __('パスワード') }}" class="sr-only" /> {{-- ★ここを日本語に修正 --}}
 
                 <x-text-input
                     id="password"
                     name="password"
                     type="password"
                     class="mt-1 block w-3/4"
-                    placeholder="{{ __('パスワード') }}"
+                    placeholder="{{ __('パスワード') }}" {{-- ★ここを日本語に修正 --}}
                 />
 
                 <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
@@ -43,11 +43,11 @@
 
             <div class="mt-6 flex justify-end">
                 <x-secondary-button x-on:click="$dispatch('close')">
-                    {{ __('キャンセル') }}
+                    {{ __('キャンセル') }} {{-- ★ここを日本語に修正 --}}
                 </x-secondary-button>
 
-                <x-danger-button class="ms-3">
-                    {{ __('アカウントを削除') }}
+                <x-danger-button class="ml-3">
+                    {{ __('アカウントを削除') }} {{-- ★ここを日本語に修正 --}}
                 </x-danger-button>
             </div>
         </form>

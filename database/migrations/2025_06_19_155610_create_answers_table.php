@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id(); // 主キー
 
             // 外部キー question_id (questionsテーブルを参照)
-            $table->foreignId('question_id')->constrained()->comment('質問ID'); // 必須
+            $table->unsignedBigInteger('question_id')->comment('質問ID'); // 必須
 
             $table->text('content')->comment('回答本文'); // 必須
             $table->string('image_path', 255)->nullable()->comment('画像パス'); // NULL許容

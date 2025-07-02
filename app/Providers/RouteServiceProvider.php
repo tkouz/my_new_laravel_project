@@ -1,4 +1,4 @@
-<?php
+<?php // ★この行の直後に余計な空白や改行がないことを確認
 
 namespace App\Providers;
 
@@ -11,13 +11,12 @@ use Illuminate\Support\Facades\Route;
 class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * The path to the "home" route for your application.
+     * The path to your application's "home" route.
      *
      * Typically, users are redirected here after authentication.
      *
      * @var string
      */
-    // ★ここを '/questions' に変更
     public const HOME = '/questions';
 
     /**

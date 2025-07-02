@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/navigation.blade.php --}}
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,64 +10,62 @@
                     </a>
                 </div>
 
-                <!-- Navigation Links (デスクトップ版) -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <!-- Navigation Links -->
+                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                     <x-nav-link :href="route('questions.index')" :active="request()->routeIs('questions.index')">
-                        {{ __('質問一覧') }}
+                        {{ __('質問一覧') }} {{-- ★ここを日本語に修正 --}}
                     </x-nav-link>
-                    @auth
-                        <x-nav-link :href="route('questions.create')" :active="request()->routeIs('questions.create')">
-                            {{ __('質問を投稿') }}
-                        </x-nav-link>
-                        {{-- ★ここから追加: マイページへの直接リンク --}}
-                        <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
-                            {{ __('マイページ') }}
-                        </x-nav-link>
-                        {{-- ★追加ここまで --}}
-                    @endauth
+                    @auth {{-- ★ここから追加 --}}
+                    <x-nav-link :href="route('questions.create')" :active="request()->routeIs('questions.create')">
+                        {{ __('質問を投稿') }} {{-- ★ここを追加 --}}
+                    </x-nav-link>
+                    @endauth {{-- ★ここまで追加 --}}
                 </div>
             </div>
 
-            <!-- Settings Dropdown (ログイン済みユーザー向け) / Login/Register Links (未ログインユーザー向け) -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <!-- Settings Dropdown -->
+            <div class="hidden sm:flex sm:items-center sm:ml-6">
                 @auth
-                    <x-dropdown align="right" width="48">
-                        <x-slot name="trigger">
-                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                                <div>{{ Auth::user()->name }}</div>
-                                <div class="ms-1">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                            </button>
-                        </x-slot>
+                <x-dropdown align="right" width="48">
+                    <x-slot name="trigger">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                            <div>{{ Auth::user()->name }}</div>
 
-                        <x-slot name="content">
-                            {{-- ドロップダウン内のマイページリンクはそのまま残す --}}
-                            <x-dropdown-link :href="route('profile.edit')">
-                                {{ __('マイページ') }}
+                            <div class="ml-1">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </button>
+                    </x-slot>
+
+                    <x-slot name="content">
+                        <x-dropdown-link :href="route('profile.edit')">
+                            {{ __('マイページ') }} {{-- ★ここを日本語に修正 --}}
+                        </x-dropdown-link>
+
+                        <!-- Authentication -->
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+
+                            <x-dropdown-link :href="route('logout')"
+                                    onclick="event.preventDefault();
+                                                this.closest('form').submit();">
+                                {{ __('ログアウト') }} {{-- ★ここを日本語に修正 --}}
                             </x-dropdown-link>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <x-dropdown-link :href="route('logout')"
-                                        onclick="event.preventDefault();
-                                                    this.closest('form').submit();">
-                                    {{ __('ログアウト') }}
-                                </x-dropdown-link>
-                            </form>
-                        </x-slot>
-                    </x-dropdown>
+                        </form>
+                    </x-slot>
+                </x-dropdown>
                 @else
-                    <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">{{ __('Log in') }}</a>
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="ms-4 font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">{{ __('Register') }}</a>
-                    @endif
+                    <div class="space-x-4">
+                        <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">ログイン</a> {{-- ★ここを日本語に修正 --}}
+                        <a href="{{ route('register') }}" class="ml-4 font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">新規登録</a> {{-- ★ここを日本語に修正 --}}
+                    </div>
                 @endauth
             </div>
 
-            <!-- Hamburger (モバイル向け) -->
-            <div class="-me-2 flex items-center sm:hidden">
+            <!-- Hamburger -->
+            <div class="-mr-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -79,58 +76,51 @@
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu (モバイル向け) -->
+    <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        @auth
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('questions.index')" :active="request()->routeIs('questions.index')">
-                {{ __('質問一覧') }}
+                {{ __('質問一覧') }} {{-- ★ここを日本語に修正 --}}
             </x-responsive-nav-link>
-            @auth
-                <x-responsive-nav-link :href="route('questions.create')" :active="request()->routeIs('questions.create')">
-                    {{ __('質問を投稿') }}
-                </x-responsive-nav-link>
-                {{-- ★ここから追加: モバイルメニューにもマイページリンク --}}
-                <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
-                    {{ __('マイページ') }}
-                </x-responsive-nav-link>
-                {{-- ★追加ここまで --}}
-            @endauth
+            <x-responsive-nav-link :href="route('questions.create')" :active="request()->routeIs('questions.create')">
+                {{ __('質問を投稿') }} {{-- ★ここを追加 --}}
+            </x-responsive-nav-link>
         </div>
 
-        <!-- Responsive Settings Options (モバイル向け) -->
+        <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
-            @auth
-                <div class="px-4">
-                    <div class="font-bold text-lg text-gray-800">{{ Auth::user()->name }}</div> 
-                    <div class="font-medium text-sm text-gray-600">{{ Auth::user()->email }}</div> 
-                </div>
+            <div class="px-4">
+                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+            </div>
 
-                <div class="mt-3 space-y-1">
-                    {{-- ドロップダウン内のマイページリンクのスタイルは維持 --}}
-                    <x-responsive-nav-link :href="route('profile.edit')" class="bg-blue-100 hover:bg-blue-200 text-blue-700">
-                        {{ __('マイページ') }}
-                    </x-responsive-nav-link>
+            <div class="mt-3 space-y-1">
+                <x-responsive-nav-link :href="route('profile.edit')">
+                    {{ __('マイページ') }} {{-- ★ここを日本語に修正 --}}
+                </x-responsive-nav-link>
 
-                    <!-- ログアウト -->
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <x-responsive-nav-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                            this.closest('form').submit();"
-                                class="text-gray-700 hover:bg-gray-100"> 
-                            {{ __('ログアウト') }}
-                        </x-responsive-nav-link>
-                    </form>
-                @else
-                    <x-responsive-nav-link :href="route('login')">
-                        {{ __('Log in') }}
+                <!-- Authentication -->
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+
+                    <x-responsive-nav-link :href="route('logout')"
+                            onclick="event.preventDefault();
+                                        this.closest('form').submit();">
+                        {{ __('ログアウト') }} {{-- ★ここを日本語に修正 --}}
                     </x-responsive-nav-link>
-                    @if (Route::has('register'))
-                        <x-responsive-nav-link :href="route('register')">
-                            {{ __('Register') }}
-                        </x-responsive-nav-link>
-                    @endif
-                @endauth
+                </form>
             </div>
         </div>
+        @else
+            <div class="pt-2 pb-3 space-y-1">
+                <x-responsive-nav-link :href="route('login')">
+                    ログイン {{-- ★ここを日本語に修正 --}}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('register')">
+                    新規登録 {{-- ★ここを日本語に修正 --}}
+                </x-responsive-nav-link>
+            </div>
+        @endauth
+    </div>
 </nav>

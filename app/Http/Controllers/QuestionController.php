@@ -2,227 +2,142 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Question;
+use App\Models\Answer; // Answerモデルをuseする
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use App\Models\Question; // Questionモデルをインポート
-use App\Models\Answer;   // Answerモデルをインポート
-use Illuminate\Support\Facades\Auth; // Authファサードをインポート
+use Illuminate\Support\Facades\Auth;
 
 class QuestionController extends Controller
 {
     /**
-     * 質問の一覧を表示します。
-     * キーワード検索、並び替え、ステータスフィルタリングの機能を含みます。
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
+     * Display a listing of the resource.
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
-        // リクエストから検索キーワード、並び替え基準、ステータスフィルターを取得
-        $keyword = $request->input('keyword');
-        $sortBy = $request->input('sort_by', 'latest'); // デフォルトは「最新」
-        $statusFilter = $request->input('status_filter', 'all'); // デフォルトは「全て」
+        // ソート順の初期化と取得
+        $sortBy = $request->query('sort_by', 'latest'); // デフォルトは 'latest'
+        // ステータスフィルターの初期化と取得
+        $statusFilter = $request->query('status_filter', 'all'); // デフォルトは 'all'
+        // 検索クエリの取得
+        $searchQuery = $request->query('search'); // ★検索クエリを取得
 
-        // Questionモデルのクエリビルダーを初期化
-        $query = Question::query();
+        $questions = Question::with(['user', 'answers.user']);
 
-        // キーワード検索が指定されている場合
-        if ($keyword) {
-            $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'LIKE', "%{$keyword}%") // タイトルにキーワードが含まれる
-                  ->orWhere('content', 'LIKE', "%{$keyword}%"); // または質問内容にキーワードが含まれる
+        // ★検索ロジックを追加
+        if ($searchQuery) {
+            $questions->where(function ($query) use ($searchQuery) {
+                $query->where('title', 'like', '%' . $searchQuery . '%')
+                      ->orWhere('body', 'like', '%' . $searchQuery . '%'); // bodyカラムを検索
             });
         }
 
-        // ステータスによる絞り込みが指定されている場合（'all'以外）
-        if ($statusFilter !== 'all') {
-            $query->where('status', $statusFilter); // 'open' (未解決) または 'resolved' (解決済み)
+        // ステータスフィルターロジック
+        if ($statusFilter === 'open') {
+            $questions->where('is_resolved', false);
+        } elseif ($statusFilter === 'resolved') {
+            $questions->where('is_resolved', true);
         }
 
-        // 回答数をカウントするためにanswersリレーションをロード
-        // paginateより前にwithCountを呼び出すことで、正しいカウントが取得される
-        $query->withCount('answers');
-
-        // 並び替えロジック
-        switch ($sortBy) {
-            case 'oldest': // 古い順
-                $query->orderBy('created_at', 'asc');
-                break;
-            case 'most_answers': // 回答数が多い順
-                $query->orderByDesc('answers_count');
-                break;
-            case 'latest': // 新しい順 (デフォルト)
-            default:
-                $query->orderByDesc('created_at');
-                break;
+        // ソートロジック
+        if ($sortBy === 'oldest') {
+            $questions->oldest();
+        } elseif ($sortBy === 'most_answers') {
+            // 回答数でソートするために結合とカウント
+            $questions->withCount('answers')->orderByDesc('answers_count');
+        } else { // 'latest' (デフォルト)
+            $questions->latest();
         }
 
-        // ユーザー情報をロードし、1ページあたり10件の質問を表示する
-        $questions = $query->with('user')->paginate(10);
+        $questions = $questions->paginate(10);
 
-        // ビューにデータを渡して表示
-        return view('questions.index', compact('questions', 'sortBy', 'statusFilter'));
+        // $sortBy と $statusFilter, $searchQuery 変数をビューに渡す
+        return view('questions.index', compact('questions', 'sortBy', 'statusFilter', 'searchQuery')); // ★searchQueryも渡す
     }
 
     /**
-     * 特定の質問の詳細を表示します。
-     * 回答、回答者、コメント、コメント投稿者も合わせてロードします。
-     *
-     * @param  \App\Models\Question  $question  表示する質問モデルのインスタンス
-     * @return \Illuminate\View\View
+     * Show the form for creating a new resource.
      */
-    public function show(Question $question): View
-    {
-        // 質問に紐付く回答、その回答に紐付くユーザー、そしてその回答に紐付くコメントとコメントの投稿者までをロード
-        $question->load(['answers.user', 'answers.comments.user']);
-
-        // ビューに質問データを渡して表示
-        return view('questions.show', compact('question'));
-    }
-
-    /**
-     * 新しい質問投稿フォームを表示します。
-     *
-     * @return \Illuminate\View\View
-     */
-    public function create(): View
+    public function create()
     {
         return view('questions.create');
     }
 
     /**
-     * 新しい質問をデータベースに保存します。
-     * 投稿者ID、タイトル、内容、デフォルトステータスを設定します。
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        // リクエストデータのバリデーション
         $request->validate([
-            'title' => 'required|string|max:255', // タイトルは必須、文字列、最大255文字
-            'content' => 'required|string',       // 内容は必須、文字列
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
         ]);
 
-        // 質問をデータベースに作成
-        Question::create([
-            'user_id' => auth()->id(),      // 認証済みユーザーのID
-            'title' => $request->title,     // リクエストからタイトルを取得
-            'content' => $request->content, // リクエストから内容を取得
-            'status' => 'open',             // デフォルトステータスを「未解決」に設定
-            'is_visible' => true,           // デフォルトで公開に設定
-        ]);
+        Auth::user()->questions()->create($request->all());
 
-        // 質問一覧ページへリダイレクトし、成功メッセージをセッションにフラッシュ
-        return redirect()->route('questions.index')->with('status', '質問が投稿されました！');
+        return redirect()->route('questions.index')->with('success', '質問が投稿されました！');
     }
 
     /**
-     * 既存の質問編集フォームを表示します。
-     * 質問の投稿者のみがアクセスできます。
-     *
-     * @param  \App\Models\Question  $question  編集する質問モデルのインスタンス
-     * @return \Illuminate\View\View
+     * Display the specified resource.
      */
-    public function edit(Question $question): View
+    public function show(Question $question)
     {
-        // 認証済みユーザーが質問の投稿者でない場合、403エラーを返す
-        if (Auth::id() !== $question->user_id) {
-            abort(403, 'Unauthorized action.'); // 認可されていないアクション
-        }
+        $question->load(['user', 'answers.user', 'answers.comments.user']); // コメントユーザーもロード
+        $isBookmarked = Auth::check() ? $question->bookmarks()->where('user_id', Auth::id())->exists() : false;
+        return view('questions.show', compact('question', 'isBookmarked'));
+    }
 
-        // ビューに質問データを渡して表示
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Question $question)
+    {
+        $this->authorize('update', $question); // ポリシーによる認可
         return view('questions.edit', compact('question'));
     }
 
     /**
-     * 既存の質問をデータベースで更新します。
-     * 質問の投稿者のみが操作できます。
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Question  $question  更新する質問モデルのインスタンス
-     * @return \Illuminate\Http\RedirectResponse
+     * Update the specified resource in storage.
      */
-    public function update(Request $request, Question $question): RedirectResponse
+    public function update(Request $request, Question $question)
     {
-        // 認証済みユーザーが質問の投稿者でない場合、403エラーを返す
-        if (Auth::id() !== $question->user_id) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('update', $question); // ポリシーによる認可
 
-        // リクエストデータのバリデーション
         $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'body' => 'required|string',
         ]);
 
-        // 質問をデータベースで更新
-        $question->update([
-            'title' => $request->title,
-            'content' => $request->content,
-        ]);
+        $question->update($request->all());
 
-        // 更新した質問の詳細ページへリダイレクトし、成功メッセージをセッションにフラッシュ
-        return redirect()->route('questions.show', $question)->with('status', '質問が更新されました！');
+        return redirect()->route('questions.show', $question)->with('success', '質問が更新されました！');
     }
 
     /**
-     * 既存の質問をデータベースから削除します。
-     * 質問の投稿者のみが操作できます。
-     *
-     * @param  \App\Models\Question  $question  削除する質問モデルのインスタンス
-     * @return \Illuminate\Http\RedirectResponse
+     * Remove the specified resource from storage.
      */
-    public function destroy(Question $question): RedirectResponse
+    public function destroy(Question $question)
     {
-        // 認証済みユーザーが質問の投稿者でない場合、403エラーを返す
-        if (Auth::id() !== $question->user_id) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        // 質問をデータベースから削除
+        $this->authorize('delete', $question); // ポリシーによる認可
         $question->delete();
-
-        // 質問一覧ページへリダイレクトし、成功メッセージをセッションにフラッシュ
-        return redirect()->route('questions.index')->with('status', '質問が削除されました。');
+        return redirect()->route('questions.index')->with('success', '質問が削除されました！');
     }
 
     /**
-     * 指定された回答をベストアンサーとしてマークし、質問を解決済みにします。
-     * 質問の投稿者のみが操作できます。
-     *
-     * @param  \App\Models\Question  $question  対象の質問モデルのインスタンス
-     * @param  \App\Models\Answer  $answer    ベストアンサーとしてマークする回答モデルのインスタンス
-     * @return \Illuminate\Http\RedirectResponse
+     * Mark an answer as the best answer.
      */
-    public function markAsBestAnswer(Question $question, Answer $answer): RedirectResponse
+    public function markAsBestAnswer(Request $request, Question $question, Answer $answer)
     {
-        // 1. 認証済みユーザーが質問の投稿者であるか確認
+        // 質問の所有者のみがベストアンサーを選べるようにする
         if (Auth::id() !== $question->user_id) {
-            return redirect()->back()->with('error', 'この質問のベストアンサーを選定する権限がありません。');
+            return back()->with('error', 'この質問のベストアンサーを選ぶ権限がありません。');
         }
 
-        // 2. その回答が対象の質問に属しているか確認
-        if ($answer->question_id !== $question->id) {
-            return redirect()->back()->with('error', '指定された回答はこの質問に属していません。');
-        }
+        // ベストアンサーIDを更新
+        $question->best_answer_id = $answer->id;
+        $question->is_resolved = true; // ★この行が重要：質問を解決済みにする
+        $question->save();
 
-        // 3. 既に別のベストアンサーが選ばれている場合、既存のベストアンサーを解除
-        $currentBestAnswer = $question->answers()->where('is_best_answer', true)->first();
-        if ($currentBestAnswer && $currentBestAnswer->id !== $answer->id) {
-            $currentBestAnswer->update(['is_best_answer' => false]);
-        }
-
-        // 4. 指定された回答をベストアンサーとしてマークする
-        $answer->update(['is_best_answer' => true]);
-
-        // 5. 質問のステータスを「解決済み」に更新する
-        $question->update(['status' => 'resolved']);
-
-        // 成功メッセージをセッションにフラッシュし、元のページへリダイレクト
-        return redirect()->back()->with('status', 'ベストアンサーが選定され、質問が解決済みに変更されました！');
+        return back()->with('success', 'ベストアンサーが選ばれました！');
     }
 }
