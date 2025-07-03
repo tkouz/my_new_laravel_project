@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Answer;  // Answerモデルをインポート
-use App\Models\Comment; // Commentモデルをインポート
-use Illuminate\Http\RedirectResponse; // RedirectResponseをインポート
+use App\Models\Answer;
+use App\Models\Comment;
+use Illuminate\Http\RedirectResponse;
+// use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // ★削除: AuthorizesRequestsトレイトのインポートを削除
 
 class CommentController extends Controller
 {
+    // use AuthorizesRequests; // ★削除: トレイトの使用宣言を削除
+
     /**
      * 指定された回答に対して新しいコメントをデータベースに保存します。
      * コメント投稿後、元の質問詳細ページにリダイレクトします。
@@ -26,8 +29,8 @@ class CommentController extends Controller
 
         // 新しいコメントをデータベースに作成
         $comment = new Comment([
-            'user_id' => auth()->id(),    // 認証済みユーザーのIDをコメント投稿者とする
-            'answer_id' => $answer->id, // コメントが属する回答のID
+            'user_id' => auth()->id(),      // 認証済みユーザーのIDをコメント投稿者とする
+            'answer_id' => $answer->id,     // コメントが属する回答のID
             'content' => $request->content, // リクエストからコメント内容を取得
         ]);
 

@@ -1,8 +1,8 @@
-{{-- resources/views/questions/edit.blade.php --}}
+{{-- resources/views/answers/edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('質問を編集') }}
+            {{ __('回答を編集') }}
         </h2>
     </x-slot>
 
@@ -10,38 +10,31 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-xl font-semibold mb-6">{{ __('質問を編集する') }}</h3>
+                    <h3 class="text-xl font-semibold mb-6">{{ __('回答を編集する') }}</h3>
 
                     <x-validation-errors class="mb-4" />
 
-                    {{-- 質問更新フォーム --}}
+                    {{-- 回答更新フォーム --}}
                     {{-- ★ここを修正: enctype="multipart/form-data" を追加 --}}
-                    <form method="POST" action="{{ route('questions.update', $question) }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('answers.update', $answer) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
-                        <!-- Title -->
+                        <!-- Content -->
                         <div>
-                            <x-input-label for="title" :value="__('タイトル')" />
-                            <x-text-input id="title" class="block mt-1 w-full" type="text" name="title" :value="old('title', $question->title)" required autofocus autocomplete="title" />
-                            <x-input-error :messages="$errors->get('title')" class="mt-2" />
-                        </div>
-
-                        <!-- Body -->
-                        <div class="mt-4">
-                            <x-input-label for="body" :value="__('質問内容')" />
-                            <x-textarea-input id="body" class="block mt-1 w-full" name="body" rows="10" required>{{ old('body', $question->body) }}</x-textarea-input>
-                            <x-input-error :messages="$errors->get('body')" class="mt-2" />
+                            <x-input-label for="content" :value="__('回答内容')" />
+                            <x-textarea-input id="content" class="block mt-1 w-full" name="content" rows="10" required>{{ old('content', $answer->content) }}</x-textarea-input>
+                            <x-input-error :messages="$errors->get('content')" class="mt-2" />
                         </div>
 
                         <!-- Image Attachment -->
                         {{-- ★ここから追加: 画像添付フィールドと既存画像表示 --}}
                         <div class="mt-4">
                             <x-input-label for="image" :value="__('画像添付 (任意)')" />
-                            @if ($question->image_path)
+                            @if ($answer->image_path)
                                 <div class="mt-2 mb-2">
                                     <p class="text-sm text-gray-600">現在の画像:</p>
-                                    <img src="{{ Storage::url($question->image_path) }}" alt="質問画像" class="max-w-xs h-auto rounded-lg shadow-md mt-1">
+                                    <img src="{{ Storage::url($answer->image_path) }}" alt="回答画像" class="max-w-xs h-auto rounded-lg shadow-md mt-1">
                                     <div class="flex items-center mt-2">
                                         <input type="checkbox" name="remove_image" id="remove_image" value="1" class="rounded border-gray-300 text-red-600 shadow-sm focus:ring-red-500">
                                         <label for="remove_image" class="ml-2 text-sm text-gray-600">{{ __('現在の画像を削除する') }}</label>
@@ -64,7 +57,7 @@
                     {{-- 削除フォームと戻るボタンを独立させる --}}
                     <div class="flex items-center justify-between mt-4">
                         {{-- 削除ボタン --}}
-                        <form action="{{ route('questions.destroy', $question) }}" method="POST" onsubmit="return confirm('本当にこの質問を削除しますか？');">
+                        <form action="{{ route('answers.destroy', $answer) }}" method="POST" onsubmit="return confirm('本当にこの回答を削除しますか？');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -72,9 +65,9 @@
                             </button>
                         </form>
 
-                        {{-- 戻るボタン --}}
-                        <a href="{{ route('questions.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:bg-gray-300 active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                            {{ __('質問一覧に戻る') }}
+                        {{-- 関連質問詳細に戻るボタン --}}
+                        <a href="{{ route('questions.show', $answer->question) }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:bg-gray-300 active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            {{ __('質問詳細に戻る') }}
                         </a>
                     </div>
 

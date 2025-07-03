@@ -10,77 +10,109 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium text-gray-900">質問リスト</h3>
-                        @auth {{-- ログインしている場合のみ表示 --}}
-                            <a href="{{ route('questions.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
-                                {{ __('質問を投稿') }}
-                            </a>
-                        @endauth
-                    </div>
+                    {{-- 検索フォーム --}}
+                    {{-- ★ここを修正: フォームのレイアウトを調整し、日付フィルターを追加 --}}
+                    <form action="{{ route('questions.index') }}" method="GET" class="mb-6 space-y-4 md:space-y-0 md:flex md:items-center md:space-x-4">
+                        <input type="text" name="search" placeholder="キーワードで検索..." value="{{ $searchQuery }}" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-auto flex-grow">
 
-                    {{-- 検索フォーム、ソートとステータス絞り込みドロップダウン --}}
-                    {{-- flex-wrap を追加して、要素が折り返せるようにする --}}
-                    <form action="{{ route('questions.index') }}" method="GET" class="mb-4 flex flex-wrap items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                        {{-- 検索入力窓と検索ボタンのコンテナ --}}
-                        <div class="w-full sm:w-1/2 flex items-center space-x-2"> {{-- flex と space-x-2 を追加 --}}
-                            <x-text-input id="search" name="search" type="text" class="block w-full" placeholder="{{ __('キーワードで検索') }}" value="{{ request('search') }}" />
-                            {{-- 検索ボタン --}}
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-                                {{ __('検索') }}
-                            </button>
+                        {{-- ★ここから追加: 投稿日時フィルター --}}
+                        <div class="flex items-center space-x-2 w-full md:w-auto">
+                            <label for="date_filter" class="text-sm text-gray-700 whitespace-nowrap">投稿日時（以降）:</label>
+                            <input type="date" name="date_filter" id="date_filter" value="{{ request('date_filter') }}" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full">
                         </div>
+                        {{-- ★ここまで追加 --}}
 
-                        {{-- ソートドロップダウン --}}
-                        <div class="w-full sm:w-1/6"> {{-- 幅を sm:w-1/6 に変更 (合計が1になるように調整) --}}
-                            <label for="sort_by" class="sr-only">並び替え</label>
-                            <select name="sort_by" id="sort_by" onchange="this.form.submit()"
-                                class="w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2"> {{-- text-sm と py-2 で高さを調整 --}}
-                                <option value="latest" {{ ($sortBy ?? 'latest') == 'latest' ? 'selected' : '' }}>新しい順</option>
-                                <option value="oldest" {{ ($sortBy ?? 'latest') == 'oldest' ? 'selected' : '' }}>古い順</option>
-                                <option value="most_answers" {{ ($sortBy ?? 'latest') == 'most_answers' ? 'selected' : '' }}>回答数が多い順</option>
-                            </select>
-                        </div>
-
-                        {{-- ステータス絞り込みドロップダウン --}}
-                        <div class="w-full sm:w-1/6"> {{-- 幅を sm:w-1/6 に変更 --}}
-                            <label for="status_filter" class="sr-only">ステータス絞り込み</label>
-                            <select name="status_filter" id="status_filter" onchange="this.form.submit()"
-                                class="w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2"> {{-- text-sm と py-2 で高さを調整 --}}
-                                <option value="all" {{ ($statusFilter ?? 'all') == 'all' ? 'selected' : '' }}>全て</option>
-                                <option value="open" {{ ($statusFilter ?? 'all') == 'open' ? 'selected' : '' }}>未解決</option>
-                                <option value="resolved" {{ ($statusFilter ?? 'all') == 'resolved' ? 'selected' : '' }}>解決済み</option>
-                            </select>
-                        </div>
-
-                        {{-- リセットボタンを追加 (条件付き表示) --}}
-                        @if (request('search') || (isset($sortBy) && $sortBy !== 'latest') || (isset($statusFilter) && $statusFilter !== 'all'))
-                            <div class="w-full sm:w-1/6"> {{-- 幅を sm:w-1/6 に変更 --}}
-                                <a href="{{ route('questions.index') }}" class="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-300 active:bg-gray-400 focus:outline-none focus:border-gray-400 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150 text-sm"> {{-- text-sm を追加 --}}
-                                    {{ __('リセット') }}
-                                </a>
-                            </div>
-                        @endif
+                        <select name="status_filter" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-auto">
+                            <option value="all" {{ $statusFilter == 'all' ? 'selected' : '' }}>全て</option>
+                            <option value="open" {{ $statusFilter == 'open' ? 'selected' : '' }}>未解決</option>
+                            <option value="resolved" {{ $statusFilter == 'resolved' ? 'selected' : '' }}>解決済み</option>
+                        </select>
+                        <select name="sort_by" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-auto">
+                            <option value="latest" {{ $sortBy == 'latest' ? 'selected' : '' }}>新しい順</option>
+                            <option value="oldest" {{ $sortBy == 'oldest' ? 'selected' : '' }}>古い順</option>
+                            <option value="most_answers" {{ $sortBy == 'most_answers' ? 'selected' : '' }}>回答数が多い順</option>
+                        </select>
+                        <x-primary-button type="submit" class="w-full md:w-auto">{{ __('検索・絞り込み') }}</x-primary-button>
+                        <a href="{{ route('questions.index') }}" class="inline-flex items-center justify-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:bg-gray-300 active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150 w-full md:w-auto">
+                            {{ __('リセット') }}
+                        </a>
                     </form>
+
+                    <div class="mb-4">
+                        <a href="{{ route('questions.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            {{ __('新しい質問を投稿') }}
+                        </a>
+                    </div>
 
                     @forelse ($questions as $question)
                         <div class="bg-gray-50 p-4 rounded-lg shadow-sm mb-4">
-                            <h4 class="text-xl font-semibold text-gray-800">
+                            <h3 class="text-lg font-semibold text-gray-800">
                                 <a href="{{ route('questions.show', $question) }}" class="hover:underline">
                                     {{ $question->title }}
                                 </a>
-                            </h4>
-                            <p class="text-gray-600 text-sm mt-1">
+                            </h3>
+                            <p class="text-gray-600 text-sm">
                                 投稿者: {{ $question->user->name }} - {{ $question->created_at->diffForHumans() }}
+                                <span class="ml-2">回答数: {{ $question->answers_count }}</span>
                                 @if ($question->is_resolved)
                                     <span class="ml-2 px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">解決済み</span>
-                                @else {{-- 未解決タグの表示ロジック --}}
-                                    <span class="ml-2 px-2 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">未解決</span>
                                 @endif
                             </p>
-                            <p class="text-gray-700 mt-2">{{ Str::limit($question->body, 150) }}</p> {{-- 質問内容の表示 --}}
-                            <div class="mt-3 text-sm text-gray-500">
-                                回答数: {{ $question->answers_count ?? $question->answers->count() }}
+                            <p class="mt-2 text-gray-700 text-sm">{{ Str::limit($question->body, 150) }}</p>
+
+                            {{-- 質問画像表示 --}}
+                            @if ($question->image_path)
+                                <div class="mt-2">
+                                    <img src="{{ Storage::url($question->image_path) }}" alt="質問画像" class="max-w-full h-auto rounded-lg shadow-md">
+                                </div>
+                            @endif
+
+                            <div class="mt-4 flex items-center justify-end space-x-2">
+                                {{-- いいね！ボタン --}}
+                                @auth
+                                    <button
+                                        id="like-button-{{ $question->id }}"
+                                        data-question-id="{{ $question->id }}"
+                                        data-liked="{{ $question->isLikedByUser(Auth::user()) ? 'true' : 'false' }}"
+                                        class="like-button inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md
+                                               {{ $question->isLikedByUser(Auth::user()) ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}
+                                               focus:outline-none transition ease-in-out duration-150"
+                                    >
+                                        <span id="like-icon-{{ $question->id }}" class="mr-1">
+                                            {{ $question->isLikedByUser(Auth::user()) ? '❤️' : '🤍' }}
+                                        </span>
+                                        いいね！
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 bg-gray-200 text-gray-700 text-sm leading-4 font-medium rounded-md">
+                                        🤍 いいね！
+                                    </span>
+                                @endauth
+                                <span id="like-count-{{ $question->id }}" class="text-gray-600 text-sm">
+                                    {{ $question->likes->count() }}
+                                </span>
+
+                                {{-- ブックマークボタン --}}
+                                @auth
+                                    <button
+                                        id="bookmark-button-{{ $question->id }}"
+                                        data-question-id="{{ $question->id }}"
+                                        data-bookmarked="{{ $question->isBookmarkedByUser(Auth::user()) ? 'true' : 'false' }}"
+                                        class="bookmark-button inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md
+                                               {{ $question->isBookmarkedByUser(Auth::user()) ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}
+                                               focus:outline-none transition ease-in-out duration-150"
+                                    >
+                                        <span id="bookmark-icon-{{ $question->id }}" class="mr-1">
+                                            {{ $question->isBookmarkedByUser(Auth::user()) ? '🔖' : '📑' }}
+                                        </span>
+                                        ブックマーク
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 bg-gray-200 text-gray-700 text-sm leading-4 font-medium rounded-md">
+                                        📑 ブックマーク
+                                    </span>
+                                @endauth
+
                             </div>
                         </div>
                     @empty
@@ -94,4 +126,125 @@
             </div>
         </div>
     </div>
+
+    {{-- JavaScript for Like and Bookmark buttons --}}
+    @auth
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // いいねボタンの処理
+            document.querySelectorAll('.like-button').forEach(button => {
+                button.addEventListener('click', async function () {
+                    const questionId = this.dataset.questionId;
+                    let isLiked = this.dataset.liked === 'true';
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const likeIcon = document.getElementById(`like-icon-${questionId}`);
+                    const likeCountSpan = document.getElementById(`like-count-${questionId}`);
+
+                    let url = '';
+                    let method = '';
+
+                    if (isLiked) {
+                        url = `/questions/${questionId}/unlike`;
+                        method = 'DELETE';
+                    } else {
+                        url = `/questions/${questionId}/like`;
+                        method = 'POST';
+                    }
+
+                    try {
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            isLiked = data.liked;
+                            this.dataset.liked = isLiked;
+                            likeCountSpan.textContent = data.likes_count;
+
+                            if (isLiked) {
+                                likeIcon.textContent = '❤️';
+                                this.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                                this.classList.add('bg-red-500', 'text-white', 'hover:bg-red-600');
+                            } else {
+                                likeIcon.textContent = '🤍';
+                                this.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
+                                this.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                            }
+                            console.log(data.message);
+                        } else {
+                            console.error('APIエラー:', data.message || '不明なエラー');
+                            alert('エラーが発生しました: ' + (data.message || '不明なエラー'));
+                        }
+                    } catch (error) {
+                        console.error('ネットワークエラー:', error);
+                        alert('ネットワークエラーが発生しました。');
+                    }
+                });
+            });
+
+            // ブックマークボタンの処理
+            document.querySelectorAll('.bookmark-button').forEach(button => {
+                button.addEventListener('click', async function () {
+                    const questionId = this.dataset.questionId;
+                    let isBookmarked = this.dataset.bookmarked === 'true';
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const bookmarkIcon = document.getElementById(`bookmark-icon-${questionId}`);
+
+                    let url = '';
+                    let method = '';
+
+                    if (isBookmarked) {
+                        url = `/questions/${questionId}/bookmark`; // ブックマーク削除
+                        method = 'DELETE';
+                    } else {
+                        url = `/questions/${questionId}/bookmark`; // ブックマーク追加
+                        method = 'POST';
+                    }
+
+                    try {
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            isBookmarked = data.bookmarked;
+                            this.dataset.bookmarked = isBookmarked;
+
+                            if (isBookmarked) {
+                                bookmarkIcon.textContent = '🔖';
+                                this.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                                this.classList.add('bg-blue-500', 'text-white', 'hover:bg-blue-600');
+                            } else {
+                                bookmarkIcon.textContent = '📑';
+                                this.classList.remove('bg-blue-500', 'text-white', 'hover:bg-blue-600');
+                                this.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                            }
+                            console.log(data.message);
+                        } else {
+                            console.error('APIエラー:', data.message || '不明なエラー');
+                            alert('エラーが発生しました: ' + (data.message || '不明なエラー'));
+                        }
+                    } catch (error) {
+                        console.error('ネットワークエラー:', error);
+                        alert('ネットワークエラーが発生しました。');
+                    }
+                });
+            });
+        });
+    </script>
+    @endauth
 </x-app-layout>

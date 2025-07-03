@@ -2,58 +2,71 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Question;
+// use App\Models\Bookmark; // ★削除: Bookmarkモデルは不要になるため削除
 use Illuminate\Http\Request;
-use App\Models\Question; // Questionモデルをインポート
-use Illuminate\Http\RedirectResponse; // RedirectResponseをインポート
-use Illuminate\Support\Facades\Auth; // Authファサードをインポート
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 
 class BookmarkController extends Controller
 {
     /**
-     * 指定された質問をブックマークとして保存します。
-     * 既にブックマーク済みの場合は何もせず、元のページにリダイレクトします。
+     * 質問をブックマークします。
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Question  $question  ブックマークする質問モデルのインスタンス
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  \App\Models\Question  $question
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request, Question $question): RedirectResponse
+    public function store(Request $request, Question $question): JsonResponse
     {
-        // 認証済みユーザーを取得
-        $user = Auth::user();
-
-        // 既にブックマーク済みでないか確認し、未ブックマークであればブックマークする
-        if (!$user->bookmarks()->where('question_id', $question->id)->exists()) {
-            $user->bookmarks()->attach($question->id);
-            // 成功メッセージをセッションにフラッシュ
-            return redirect()->back()->with('status', '質問をブックマークしました！');
+        // ユーザーがログインしていることを確認
+        if (!Auth::check()) {
+            return response()->json(['message' => 'ログインが必要です。'], 401);
         }
 
-        // 既にブックマーク済みの場合は、情報メッセージをセッションにフラッシュ
-        return redirect()->back()->with('status', 'この質問は既にブックマークされています。');
+        $user = Auth::user();
+
+        // 既にブックマークしているか確認し、していなければ追加
+        if ($user->bookmarks()->where('question_id', $question->id)->exists()) {
+            return response()->json(['message' => '既にブックマークしています。'], 409); // Conflict
+        }
+
+        // ★修正: attach() を使用してブックマークを追加
+        $user->bookmarks()->attach($question->id);
+
+        return response()->json([
+            'message' => 'ブックマークしました！',
+            'bookmarked' => true
+        ]);
     }
 
     /**
-     * 指定された質問のブックマークを解除します。
-     * ブックマークされていない場合は何もせず、元のページにリダイレクトします。
+     * 質問のブックマークを解除します。
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Question  $question  ブックマークを解除する質問モデルのインスタンス
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  \App\Models\Question  $question
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Request $request, Question $question): RedirectResponse
+    public function destroy(Request $request, Question $question): JsonResponse
     {
-        // 認証済みユーザーを取得
-        $user = Auth::user();
-
-        // ブックマーク済みであるか確認し、ブックマーク済みであれば解除する
-        if ($user->bookmarks()->where('question_id', $question->id)->exists()) {
-            $user->bookmarks()->detach($question->id);
-            // 成功メッセージをセッションにフラッシュ
-            return redirect()->back()->with('status', 'ブックマークを解除しました。');
+        // ユーザーがログインしていることを確認
+        if (!Auth::check()) {
+            return response()->json(['message' => 'ログインが必要です。'], 401);
         }
 
-        // ブックマークされていない場合は、情報メッセージをセッションにフラッシュ
-        return redirect()->back()->with('status', 'この質問はブックマークされていません。');
+        $user = Auth::user();
+
+        // ブックマークしているか確認し、していれば削除
+        if (!$user->bookmarks()->where('question_id', $question->id)->exists()) {
+            return response()->json(['message' => 'ブックマークしていません。'], 409); // Conflict
+        }
+
+        // ★修正: detach() を使用してブックマークを削除
+        $user->bookmarks()->detach($question->id);
+
+        return response()->json([
+            'message' => 'ブックマークを解除しました。',
+            'bookmarked' => false
+        ]);
     }
 }

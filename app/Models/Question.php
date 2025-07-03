@@ -6,25 +6,37 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // ★追加: BelongsToManyをインポート
 
 class Question extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
+        'user_id',
         'title',
         'body',
-        'user_id',
-        'best_answer_id', // ベストアンサーIDを追加
-        'is_resolved',    // ★この行が重要：解決済みフラグ
-    ];
-
-    protected $casts = [
-        'is_resolved' => 'boolean', // is_resolved をboolean型としてキャストする
+        'image_path',
+        'is_resolved',
+        'best_answer_id',
     ];
 
     /**
-     * Get the user that owns the question.
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'is_resolved' => 'boolean',
+    ];
+
+    /**
+     * この質問を投稿したユーザーを取得します。
      */
     public function user(): BelongsTo
     {
@@ -32,7 +44,7 @@ class Question extends Model
     }
 
     /**
-     * Get the answers for the question.
+     * この質問に紐づく回答を取得します。
      */
     public function answers(): HasMany
     {
@@ -40,7 +52,7 @@ class Question extends Model
     }
 
     /**
-     * Get the best answer for the question.
+     * この質問に選ばれたベストアンサーを取得します。
      */
     public function bestAnswer(): BelongsTo
     {
@@ -48,10 +60,42 @@ class Question extends Model
     }
 
     /**
-     * Get the bookmarks for the question.
+     * この質問に紐づく「いいね！」を取得します。
      */
-    public function bookmarks(): HasMany
+    public function likes(): HasMany
     {
-        return $this->hasMany(Bookmark::class);
+        return $this->hasMany(Like::class);
+    }
+
+    /**
+     * 現在のユーザーがこの質問に「いいね！」しているかを確認します。
+     */
+    public function isLikedByUser(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+        return $this->likes()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * この質問をブックマークしたユーザーを取得します。
+     * ★修正: HasManyからBelongsToManyへ
+     */
+    public function bookmarkedByUsers(): BelongsToMany // メソッド名を変更して、ユーザー側からのリレーションと区別
+    {
+        return $this->belongsToMany(User::class, 'bookmarks', 'question_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * 現在のユーザーがこの質問をブックマークしているかを確認します。
+     * ★修正: ロジックをBelongsToManyに合わせて変更
+     */
+    public function isBookmarkedByUser(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+        return $this->bookmarkedByUsers()->where('user_id', $user->id)->exists();
     }
 }

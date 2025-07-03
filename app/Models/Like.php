@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // BelongsToをインポート
 
-class Bookmark extends Model
+class Like extends Model
 {
     use HasFactory;
 
@@ -20,17 +21,17 @@ class Bookmark extends Model
     ];
 
     /**
-     * このブックマークを所有するユーザーを取得する
+     * この「いいね！」を付けたユーザーを取得
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /**
-     * このブックマークが関連する質問を取得する
+     * この「いいね！」が付けられた質問を取得
      */
-    public function question()
+    public function question(): BelongsTo
     {
         return $this->belongsTo(Question::class);
     }

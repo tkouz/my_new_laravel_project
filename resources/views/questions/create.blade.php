@@ -10,7 +10,8 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <form method="POST" action="{{ route('questions.store') }}">
+                    {{-- ★ここを修正: enctype="multipart/form-data" を追加 --}}
+                    <form method="POST" action="{{ route('questions.store') }}" enctype="multipart/form-data">
                         @csrf
 
                         <!-- Title -->
@@ -26,6 +27,16 @@
                             <x-textarea-input id="body" class="block mt-1 w-full" name="body" rows="10" required>{{ old('body') }}</x-textarea-input>
                             <x-input-error :messages="$errors->get('body')" class="mt-2" />
                         </div>
+
+                        <!-- Image Attachment -->
+                        {{-- ★ここから追加: 画像添付フィールド --}}
+                        <div class="mt-4">
+                            <x-input-label for="image" :value="__('画像添付')" />
+                            <input id="image" class="block mt-1 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" type="file" name="image" required /> {{-- 質問投稿では画像は必須 --}}
+                            <p class="mt-1 text-sm text-gray-500" id="file_input_help">PNG, JPG, JPEG (最大2MB)</p>
+                            <x-input-error :messages="$errors->get('image')" class="mt-2" />
+                        </div>
+                        {{-- ★ここまで追加 --}}
 
                         <div class="flex items-center justify-end mt-4">
                             <x-primary-button class="ml-4">
