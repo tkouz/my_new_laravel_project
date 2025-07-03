@@ -19,27 +19,22 @@ use App\Http\Controllers\LikeController;
 |
 */
 
-// 未認証ユーザーもアクセス可能なルート
-// ★重要: 質問一覧ページとトップページのリダイレクトを、認証済みユーザー用ルートや詳細ルートより前に配置
-// これにより、まずトップページが質問一覧にリダイレクトされ、未認証でも質問一覧が見えることを保証します。
-Route::get('/questions', [QuestionController::class, 'index'])
-     ->name('questions.index');
-
 // トップページへのアクセスを質問一覧にリダイレクト
 Route::get('/', function () {
     return redirect()->route('questions.index');
 });
 
-// 質問詳細ページのルート (未認証ユーザーもアクセス可能)
-// これは動的なルートなので、固定のURLである /questions/create や /questions より後に配置する
-Route::get('/questions/{question}', [QuestionController::class, 'show'])
-     ->name('questions.show');
-
+// 質問一覧ページのルート (未認証ユーザーもアクセス可能)
+Route::get('/questions', [QuestionController::class, 'index'])
+     ->name('questions.index');
 
 // 認証済みユーザーのみがアクセスできるルートグループ
 Route::middleware('auth')->group(function () {
+    // ★★★ ここを元に戻す ★★★
     // 質問投稿フォーム表示のルートを、動的な質問詳細ルートより前に配置
+    // これにより、'/questions/create' が '/questions/{question}' として解釈されるのを防ぎます。
     Route::get('/questions/create', [QuestionController::class, 'create'])->name('questions.create');
+    // ★★★ ここまで元に戻す ★★★
 
     // QuestionControllerに対するリソースルートを定義
     // index, show, create メソッドは上記で定義済みのため除外
@@ -62,15 +57,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/questions/{question}/like', [LikeController::class, 'like'])->name('questions.like');
     Route::delete('/questions/{question}/unlike', [LikeController::class, 'unlike'])->name('questions.unlike');
 
-    // プロフィール関連 (マイページとして利用)
+    // プロフィール関連
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('/profile/image', [ProfileController::class, 'updateImage'])->name('profile.updateImage');
+    Route::delete('/profile/image', [ProfileController::class, 'deleteImage'])->name('profile.deleteImage');
 
     // ベストアンサー選定ルート
     Route::post('/questions/{question}/answers/{answer}/best', [QuestionController::class, 'markAsBestAnswer'])->name('answers.markAsBestAnswer');
 });
 
+// 質問詳細ページのルート (未認証ユーザーもアクセス可能) - ★注意: 認証グループの外で、かつquestions/createより後に配置
+Route::get('/questions/{question}', [QuestionController::class, 'show'])
+     ->name('questions.show');
 
-// 認証関連のルートをインクルード (ファイルの最後に配置)
+// 認証関連のルートをインクルード
 require __DIR__.'/auth.php';

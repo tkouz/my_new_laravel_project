@@ -38,11 +38,12 @@
                         </a>
                     </form>
 
-                    <div class="mb-4">
+                    {{-- ★ここを削除: 検索窓の下の「新しい質問を投稿」ボタン --}}
+                    {{-- <div class="mb-4">
                         <a href="{{ route('questions.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             {{ __('新しい質問を投稿') }}
                         </a>
-                    </div>
+                    </div> --}}
 
                     @forelse ($questions as $question)
                         <div class="bg-gray-50 p-4 rounded-lg shadow-sm mb-4">
@@ -75,8 +76,8 @@
                                         data-question-id="{{ $question->id }}"
                                         data-liked="{{ $question->isLikedByUser(Auth::user()) ? 'true' : 'false' }}"
                                         class="like-button inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md
-                                               {{ $question->isLikedByUser(Auth::user()) ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}
-                                               focus:outline-none transition ease-in-out duration-150"
+                                                {{ $question->isLikedByUser(Auth::user()) ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}
+                                                focus:outline-none transition ease-in-out duration-150"
                                     >
                                         <span id="like-icon-{{ $question->id }}" class="mr-1">
                                             {{ $question->isLikedByUser(Auth::user()) ? '❤️' : '🤍' }}
@@ -99,8 +100,8 @@
                                         data-question-id="{{ $question->id }}"
                                         data-bookmarked="{{ $question->isBookmarkedByUser(Auth::user()) ? 'true' : 'false' }}"
                                         class="bookmark-button inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md
-                                               {{ $question->isBookmarkedByUser(Auth::user()) ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}
-                                               focus:outline-none transition ease-in-out duration-150"
+                                                {{ $question->isBookmarkedByUser(Auth::user()) ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}
+                                                focus:outline-none transition ease-in-out duration-150"
                                     >
                                         <span id="bookmark-icon-{{ $question->id }}" class="mr-1">
                                             {{ $question->isBookmarkedByUser(Auth::user()) ? '🔖' : '📑' }}
