@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage; // Storageファサードを追加
-use App\Models\Question; // Questionモデルを追加
-use App\Models\Answer;   // Answerモデルを追加
-use App\Models\Comment;  // Commentモデルを追加
-use App\Models\User;     // Userモデルを追加 (明示的に)
+use App\Models\Question;
+use App\Models\Answer;
+use App\Models\Comment;
+use App\Models\User;
 
 class ProfileController extends Controller
 {
@@ -23,18 +23,28 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // ログインユーザーが投稿した質問、回答、コメントを取得
-        // リレーションシップが正しく設定されていることを前提とします。
-        // 例えば、Userモデルに hasMany(Question::class) など。
+        // 自分が投稿した質問
         $userQuestions = $user->questions()->latest()->get();
-        $userAnswers = $user->answers()->latest()->get();
-        $userComments = $user->comments()->latest()->get();
+
+        // 自分が投稿した回答
+        // 回答の質問タイトルと本文を表示するために質問もロード
+        $userAnswers = $user->answers()->with('question')->latest()->get();
+
+        // 自分が投稿したコメント
+        // コメントの回答本文と質問タイトルを表示するために回答と質問もロード
+        $userComments = $user->comments()->with('answer.question')->latest()->get();
+
+        // ブックマークした質問
+        // Userモデルにbookmarksリレーションシップが定義されていることを前提とします。
+        // bookmarksテーブルのcreated_atでソート
+        $bookmarkedQuestions = $user->bookmarks()->latest('bookmarks.created_at')->get(); 
 
         return view('profile.edit', [
             'user' => $user,
             'userQuestions' => $userQuestions,
             'userAnswers' => $userAnswers,
             'userComments' => $userComments,
+            'bookmarkedQuestions' => $bookmarkedQuestions, // ここを追加
         ]);
     }
 

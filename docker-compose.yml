@@ -16,8 +16,8 @@ services:
         # Volumes to mount into the container
         volumes:
             - '.:/var/www/html' # Mount current directory to /var/www/html
-            # ★追加: Nginx設定ファイルをコンテナにマウント
-            - './vendor/laravel/sail/runtimes/8.3/sails/8.3/nginx.conf:/etc/nginx/http.d/default.conf'
+            # ★追加: Nginx設定ファイルをコンテナにマウント (この行はLaravel Sailのデフォルトでは不要な場合が多いですが、もし必要なら残してください)
+            # - './vendor/laravel/sail/runtimes/8.3/sails/8.3/nginx.conf:/etc/nginx/http.d/default.conf'
         # Ports to expose (PHP-FPM typically doesn't expose ports directly)
         ports:
             - '${APP_PORT:-80}:80' # Map host port 80 to container port 80 (for Apache/Nginx)
@@ -31,6 +31,8 @@ services:
             - redis
             - meilisearch
             - selenium
+            # - mailpit # もしmailpitを使うなら追加
+            # - selenium # もしseleniumを使うなら追加
 
     # MySQL database service
     mysql:
@@ -56,7 +58,6 @@ services:
                 - ping
                 - '-p${DB_PASSWORD}'
             retries: 3
-            # time: 5 # この行は前回削除済み
 
     # Redis service
     redis:
@@ -73,7 +74,6 @@ services:
                 - redis-cli
                 - ping
             retries: 3
-            # time: 5 # この行は前回削除済み
 
     # Meilisearch service (for full-text search)
     meilisearch:
@@ -92,7 +92,6 @@ services:
                 - '--spider'
                 - 'http://localhost:7700/health'
             retries: 3
-            # time: 5 # この行は前回削除済み
 
     # Selenium service (for browser testing)
     selenium:
@@ -101,6 +100,21 @@ services:
             - 'host.docker.internal:172.17.0.1' # Map host.docker.internal to host IP
         networks:
             - sail
+
+    # ★ここから追加：phpMyAdminサービス
+    phpmyadmin:
+        image: 'phpmyadmin/phpmyadmin' # phpMyAdminイメージ
+        links:
+            - mysql:db # mysqlサービスをdbというホスト名でリンク
+        ports:
+            - '${PHPMYADMIN_PORT:-8080}:80' # ホストの8080番ポートをコンテナの80番ポートにマッピング
+        environment:
+            PMA_HOST: mysql # MySQLサービスのホスト名
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}' # MySQLのrootパスワード
+        networks:
+            - sail
+        depends_on:
+            - mysql # MySQLサービスに依存
 
 # Networks definition
 networks:

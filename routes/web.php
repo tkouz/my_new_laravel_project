@@ -4,9 +4,9 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\AnswerController;
-use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\BookmarkController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,11 +30,9 @@ Route::get('/questions', [QuestionController::class, 'index'])
 
 // 認証済みユーザーのみがアクセスできるルートグループ
 Route::middleware('auth')->group(function () {
-    // ★★★ ここを元に戻す ★★★
     // 質問投稿フォーム表示のルートを、動的な質問詳細ルートより前に配置
     // これにより、'/questions/create' が '/questions/{question}' として解釈されるのを防ぎます。
     Route::get('/questions/create', [QuestionController::class, 'create'])->name('questions.create');
-    // ★★★ ここまで元に戻す ★★★
 
     // QuestionControllerに対するリソースルートを定義
     // index, show, create メソッドは上記で定義済みのため除外
@@ -47,8 +45,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('answers', AnswerController::class)->except(['index', 'show', 'create', 'store']);
 
     // ブックマークに関するルート
-    Route::post('/questions/{question}/bookmark', [BookmarkController::class, 'store'])->name('bookmark.store');
-    Route::delete('/questions/{question}/bookmark', [BookmarkController::class, 'destroy'])->name('bookmark.destroy');
+    // ルート名を複数形 'bookmarks' に変更
+    Route::post('/questions/{question}/bookmark', [BookmarkController::class, 'store'])->name('bookmarks.store');
+    Route::delete('/questions/{question}/bookmark', [BookmarkController::class, 'destroy'])->name('bookmarks.destroy');
 
     // コメント投稿に関するルート (POSTのみ)
     Route::post('/answers/{answer}/comments', [CommentController::class, 'store'])->name('comments.store');
