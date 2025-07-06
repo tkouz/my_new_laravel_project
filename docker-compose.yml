@@ -1,6 +1,3 @@
-# Docker Compose version
-version: '3.8'
-
 # Services (containers) definitions
 services:
     # Laravel application service

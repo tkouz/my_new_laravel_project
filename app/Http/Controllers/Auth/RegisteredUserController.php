@@ -45,6 +45,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // ここを修正します。ルート名 'questions.index' を使用します。
+        return redirect(route('questions.index', absolute: false));
     }
 }

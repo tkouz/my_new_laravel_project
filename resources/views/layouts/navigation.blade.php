@@ -14,19 +14,30 @@
                     </x-nav-link>
 
                     @auth
-                        {{-- ★ここから追加・修正 --}}
+                        {{-- ログイン済みユーザー向けのリンク --}}
                         <x-nav-link :href="route('questions.create')" :active="request()->routeIs('questions.create')">
                             {{ __('質問を投稿する') }}
                         </x-nav-link>
-                        {{-- ★ここまで追加・修正 --}}
 
                         <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
                             {{ __('マイページ') }}
                         </x-nav-link>
                     @endauth
+
+                    {{-- ★ここから追加：ログインしていないユーザー向けのリンク（ログイン/新規登録ボタン） --}}
+                    @guest
+                        <x-nav-link :href="route('login')" :active="request()->routeIs('login')">
+                            {{ __('ログイン') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('register')" :active="request()->routeIs('register')">
+                            {{ __('新規登録') }}
+                        </x-nav-link>
+                    @endguest
+                    {{-- ★ここまで追加 --}}
                 </div>
             </div>
 
+            {{-- ログイン済みユーザーのドロップダウンメニュー --}}
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -59,6 +70,7 @@
                 </x-dropdown>
             </div>
 
+            {{-- モバイル用ハンバーガーメニュー --}}
             <div class="-me-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -70,6 +82,7 @@
         </div>
     </div>
 
+    {{-- モバイル用レスポンシブナビゲーション --}}
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('questions.index')" :active="request()->routeIs('questions.index')">
@@ -77,18 +90,29 @@
             </x-responsive-nav-link>
 
             @auth
-                {{-- ★ここから追加・修正 --}}
+                {{-- ログイン済みユーザー向けのレスポンシブリンク --}}
                 <x-responsive-nav-link :href="route('questions.create')" :active="request()->routeIs('questions.create')">
                     {{ __('質問を投稿する') }}
                 </x-responsive-nav-link>
-                {{-- ★ここまで追加・修正 --}}
 
                 <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
                     {{ __('マイページ') }}
                 </x-responsive-nav-link>
             @endauth
+
+            {{-- ★ここから追加：ログインしていないユーザー向けのレスポンシブリンク --}}
+            @guest
+                <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')">
+                    {{ __('ログイン') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('register')" :active="request()->routeIs('register')">
+                    {{ __('新規登録') }}
+                </x-responsive-nav-link>
+            @endguest
+            {{-- ★ここまで追加 --}}
         </div>
 
+        {{-- レスポンシブユーザー情報とログアウト --}}
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800">{{ Auth::user()->name ?? 'ゲスト' }}</div>
@@ -104,8 +128,8 @@
                     @csrf
 
                     <x-responsive-nav-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                            this.closest('form').submit();">
+                                    onclick="event.preventDefault();
+                                                this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
                 </form>
